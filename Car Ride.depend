@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1623045066 source:c:\running-project\graphics\car ride\main.cpp
+1623564273 source:c:\running-project\graphics\car ride\main.cpp
 	<bits/stdc++.h>
 	<windows.h>
 	"BmpLoader.h"

@@ -6,12 +6,15 @@
 #include<string>
 using namespace std;
 
+const double PI = 3.14159265389;
+static bool collision = false, hLight = false, light1 = false;
+static int point = 0;
 static float lookX = 0;
 static float lookZ = 10;
 static float eyeX = 1, eyeY = 1, eyeZ = 8;
 static float carX[8] = {-6.8, -6.7, -4.2, -4.5, 4.2, 2.5, 3, 4.2}, carZ[8] = {-2, -10, -18, -30, -2, -40 , -18, -10};
 static float carSpeed[8] = {0.2, 0.3, 0.35, 0.15, 0.25, 0.2, 0.25, 0.3};
-
+static float obstLeftX[12], obstRightX[12], obstLeftZ[12], obstRightZ[12];
 unsigned int ID;
 
 static GLfloat v_cube[8][3] =
@@ -83,14 +86,16 @@ void LoadTexture(const char*filename, int rep = 1)
 void drawCube(float colorRed, float colorGreen, float colorBlue, bool e=false)
 {
     GLfloat no_mat[] = {0, 0, 0, 1.0};
+    GLfloat mat_emission[] = {colorRed, colorGreen, colorBlue,1};
     GLfloat mat_ambient[] = {colorRed,colorGreen,colorBlue,1};
     GLfloat mat_diffuse[] = {colorRed,colorGreen,colorBlue,1};
     GLfloat mat_specular[] = {1,1,1,1};
-    GLfloat mat_shininess[] = {30};
+    GLfloat mat_shininess[] = {60};
 
     glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialfv(GL_FRONT, GL_EMISSION, e?mat_emission:no_mat);
     glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
 
@@ -141,23 +146,61 @@ void drawText(string str,float colorRed, float colorGreen, float colorBlue,int w
 
 }
 
-void light()
+void light(float x, float y, float z)
 {
     GLfloat no_light[] = {0, 0, 0, 1.0};
-    GLfloat light_ambient[] = {0.1, 0.1, 0.1, 1.0};
-    GLfloat light_diffuse[] = {1,1,1,1};
-    GLfloat light_specular[] = {0.2,0.2,0.2,1};
-    GLfloat light_pos[] = {0,3,0,1.0};
+    GLfloat light_ambient[] = {0.1, 0.1, 0.1, 1};
+    GLfloat light_diffuse[] = {0.2, 0.2, 0.2, 1};
+    GLfloat light_specular[] = {1, 1, 1, 1};
+    GLfloat light_pos[] = { x, y, z, 1.0};
 
     glEnable(GL_LIGHT0);
-    glLightfv(GL_LIGHT0,GL_AMBIENT,light_ambient);
-    glLightfv(GL_LIGHT0,GL_DIFFUSE,light_diffuse);
-    glLightfv(GL_LIGHT0,GL_SPECULAR,light_specular);
-    glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
+    glLightfv(GL_LIGHT0,GL_AMBIENT, light1?light_ambient:no_light);
+    glLightfv(GL_LIGHT0,GL_DIFFUSE, light1?light_diffuse:no_light);
+    glLightfv(GL_LIGHT0,GL_SPECULAR, light1?light_specular:no_light);
+    glLightfv(GL_LIGHT0,GL_POSITION, light_pos);
 
 }
 
+void head_light(float x, float y, float z)
+{
+    GLfloat no_light[] = { 0.0, 0.0, 0.0, 1.0 };
+    GLfloat light_ambient[]  = {1, 0, 0, 1.0};
+    GLfloat light_diffuse[]  = { 1, 0, 0, 1.0 };
+    GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+    GLfloat light_pos[] = { x,y,z,1};
 
+    glEnable(GL_LIGHT1);
+    glLightfv(GL_LIGHT1, GL_AMBIENT, hLight?light_ambient:no_light);
+    glLightfv(GL_LIGHT1,GL_DIFFUSE, hLight?light_diffuse:no_light);
+    glLightfv(GL_LIGHT1,GL_SPECULAR, hLight?light_specular:no_light);
+    glLightfv(GL_LIGHT1, GL_POSITION, light_pos);
+
+    GLfloat direction[] = {0, -1, -1, 1};
+    GLfloat cut_off = 42.0;
+    glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, direction );
+    glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, cut_off );
+}
+
+void shop_light(float x, float y, float z)
+{
+    GLfloat no_light[] = { 0.0, 0.0, 0.0, 1.0 };
+    GLfloat light_ambient[]  = {0.3, 0.3, 0.3, 1.0};
+    GLfloat light_diffuse[]  = { 1, 1, 1, 1.0 };
+    GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+    GLfloat light_pos[] = { x,y,z,1};
+
+    glEnable(GL_LIGHT2);
+    glLightfv(GL_LIGHT2, GL_AMBIENT, hLight?light_ambient:no_light);
+    glLightfv(GL_LIGHT2,GL_DIFFUSE, hLight?light_diffuse:no_light);
+    glLightfv(GL_LIGHT2,GL_SPECULAR, hLight?light_specular:no_light);
+    glLightfv(GL_LIGHT2, GL_POSITION, light_pos);
+
+    GLfloat direction[] = {-1, -1, 0, 1};
+    GLfloat cut_off = 180.0;
+    glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, direction );
+    glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, cut_off );
+}
 void axis(void)
 {
 
@@ -179,16 +222,47 @@ void axis(void)
 
 void Floor(void)
 {
-    for(int i=0; i<15; i++)
+    ///left side
+    for(int i=0; i<150; i++)
     {
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 5);
+
         glPushMatrix();
-        glTranslatef(-100,-3,i*-100);
-        glScaled(200,1,110);
-        drawCube(.35,.75,.5);
-        glDisable(GL_TEXTURE_2D);
+        for(int j=0;j<13;j++){
+            glPushMatrix();
+            glTranslatef(-10*j + 2, -3, i*-10);
+            glScalef(10,1,10);
+            drawCube(.35,.75,.5);
+            glPopMatrix();
+        }
         glPopMatrix();
+        glDisable(GL_TEXTURE_2D);
+    }
+    ///right side
+    for(int i=0; i<150; i++){
+
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 13);
+        glPushMatrix();
+        glTranslatef(12, -3, i*-10);
+        glScalef(10,1,10);
+        drawCube(1,1,1);
+        glPopMatrix();
+        glDisable(GL_TEXTURE_2D);
+
+        glPushMatrix();
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 4);
+        for(int j=0;j<12;j++){
+            glPushMatrix();
+            glTranslatef(10*j +17, -4, i*-10);
+            glScalef(10,1,10);
+            drawCube(1,1,1);
+            glPopMatrix();
+        }
+        glPopMatrix();
+        glDisable(GL_TEXTURE_2D);
     }
 }
 
@@ -278,7 +352,7 @@ void building(void)
     int height1 = 18,height2,height3,height4;
     int width = 13 ,length = 15;
 
-    for(int j=0;j<8;j++){
+    for(int j=0;j<10;j++){
         int space = j*165;
         for(int i=0;i<4;i++){
             glPushMatrix();
@@ -464,13 +538,59 @@ void shop()
         }
     }
 }
+void obstacle()
+{
 
+    ///Left
+    for(int i=1; i<=10;i++){
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, (i&1)?14:15);
+        glPushMatrix();
+        obstLeftX[i] = (i&1)?-7:-5;
+        obstLeftZ[i] = -130*i;
+        glTranslatef(obstLeftX[i], -2, obstLeftZ[i]);
+        glScalef(3, 1.5, 0.7);
+        drawCube(1,1,1);
+        glPopMatrix();
+        glDisable(GL_TEXTURE_2D);
+
+    }
+    ///Right
+    for(int i=1;i<=10;i++){
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, (i&1)?15:14);
+        glPushMatrix();
+        obstRightX[i] = (i&1)?2:3;
+        obstRightZ[i] = -100*i;
+        glTranslatef(obstRightX[i], -2, obstRightZ[i]);
+        glScalef(3, 1.5, 0.7);
+        drawCube(1,1,1);
+        glPopMatrix();
+        glDisable(GL_TEXTURE_2D);
+    }
+}
 void car(void)
 {
+    head_light(0,2,-3);
     glPushMatrix();
 
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D,6);
+
+    ///Front Left Light
+    glPushMatrix();
+    glTranslatef(0.2, -0.4, -2.02);
+    glScalef(0.3, 0.25, 0.1);
+    drawCube(0.9, 0.5, 0.5, hLight?true:false);
+    glPopMatrix();
+
+    ///Front Right Light
+    glPushMatrix();
+    glTranslatef(2-0.5, -0.4, -2.02);
+    glScalef(0.3, 0.25, 0.1);
+    drawCube(0.9, 0.5, 0.5, hLight?true:false);
+    glPopMatrix();
+
     ///lowerPart
     glPushMatrix();
     glTranslatef(0, -0.8, 0 - 2);
@@ -506,18 +626,19 @@ void car(void)
 
     glDisable(GL_TEXTURE_2D);
 
+
     ///Signal Light Left
     glPushMatrix();
     glTranslatef(0, -0.4, 0 + 3.1);
     glScalef(.3, .15, .01);
-    drawCube(1, 0, 0);
+    drawCube(1, 0, 0, hLight?true:false);
     glPopMatrix();
 
     ///Signal Light Right
     glPushMatrix();
     glTranslatef(0 + 2 - 0.3 , -0.4, 0 + 3.1);
     glScalef(.3, .15, .01);
-    drawCube(1, 0, 0);
+    drawCube(1, 0, 0, hLight?true:false);
     glPopMatrix();
 
     glPopMatrix();
@@ -526,7 +647,7 @@ void car(void)
 static void display(void)
 {
 
-    glClearColor(0.686, 0.933, 0.933, 1.0);
+    glClearColor(0.3, 0.3, 0.3, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
@@ -536,26 +657,40 @@ static void display(void)
 
     ///Start text Section
     stringstream ss;
-    ss<<lookX;
-    string temp(ss.str());
-    string s1 = "LookX = " + temp;
+    ss<<"COLLISION";
+
+    string s1 = ss.str();
+
+    if(collision){
+        glPushMatrix();
+        glTranslatef(lookX , 3 , lookZ);
+        glRotatef(-2,0,0,1);
+        drawText(s1,1, 0, 0, 2);
+        glPopMatrix();
+
+        collision = false;
+    }
+
     ss.str(string());
-    ss<<lookZ;
-    temp = ss.str();
-    string s2 = " LookZ = " + temp;
-    s1 = s1 + s2;
+
+    ss<<point;
+    s1 ="Point:" + ss.str();
 
     glPushMatrix();
-    glTranslatef(lookX-2.3 , 2.7 , lookZ);
-    glRotatef(-2,0,0,1);
-    drawText(s1,0, 0, 1  ,2);
+    glTranslatef(lookX + 2.5, 3.7, lookZ);
+    glRotatef(-2, 0, 0, 1);
+    drawText(s1, 0, 0, 1, 3);
     glPopMatrix();
     ///End text section
 
     glPushMatrix();
     glTranslatef(lookX-2.3 , 10 , lookZ-5);
     glScalef(1,1,200);
-    light();
+    light(0,3,0);
+    glPopMatrix();
+
+    glPushMatrix();
+    shop_light(lookX,3,lookZ -20);
     glPopMatrix();
 
     shop();
@@ -572,13 +707,13 @@ static void display(void)
         road();
     glDisable(GL_TEXTURE_2D);
 
+    obstacle();
 
     for(int i=0;i<8;i++){
         glPushMatrix();
         glTranslatef(carX[i], -0.5, carZ[i]);
         car();
         glPopMatrix();
-
     }
 
     glPushMatrix();
@@ -625,15 +760,23 @@ static void keyPressed(unsigned char key, int x, int y)
     }
     else if(keyStates['a']){
         if ( lookX > -6.2)
-                lookX = lookX - 0.2;
+                lookX = lookX - 0.15;
     }
     else if(keyStates['f']){
         if ( lookX < 4.5)
                 lookX = lookX + 0.15;
     }
+    else if(keyStates['1']){
+        light1 = !light1;
+    }
+    else if(keyStates['2']){
+        hLight = !hLight;
+    }
+    else if(keyStates['<']){
+
+    }
     else if(keyStates['z']){
             eyeZ-=0.5;
-
     }
     else if(keyStates['Z']){
         eyeZ+=0.5;
@@ -660,6 +803,7 @@ static void keyPressed(unsigned char key, int x, int y)
 static void keyUp(unsigned char key, int x, int y){
     keyStates[key] = false;
 
+    glutPostRedisplay();
 }
 
 static void idle(void)
@@ -669,6 +813,7 @@ static void idle(void)
     else if(lookZ>3){
         lookZ=3;
     }
+    if(running)lookZ-=0.7 , point++;
     if(start){
         for(int i=0;i<8;i++){
             if(carZ[i]<-1300)
@@ -677,6 +822,59 @@ static void idle(void)
                 carZ[i] -= carSpeed[i];
             }
         }
+    }
+    ///Collision detection
+     for(int i=0;i<8;i++){
+        if((carX[i]<=lookX+2 && carX[i]+2 >= lookX+2)&&(carZ[i]<=lookZ && carZ[i]+5>=lookZ)){
+            lookX = lookX-0.3;
+            lookZ = lookZ+1;
+            collision = true;
+        }
+        else if((carX[i]<=lookX && carX[i]+2>=lookX) &&(carZ[i]<=lookZ && carZ[i]+5>=lookZ)){
+            lookX = lookX+0.3;
+            lookZ = lookZ+1;
+            collision = true;
+        }
+        else if((carX[i]<=lookX && carX[i]+2>=lookX) &&(carZ[i]<=lookZ+5 && carZ[i]+5>=lookZ+5)){
+            lookX = lookX+0.3;
+            lookZ = lookZ - 1;
+            collision = true;
+        }
+        else if((carX[i]>=lookX+2 && carX[i]+2<=lookX+2) &&(carZ[i]<=lookZ+5 && carZ[i]+5>=lookZ+5)){
+            lookX = lookX-3;
+            lookZ = lookZ - 1;
+            collision = true;
+        }
+    }
+    for(int i=1; i<=10; i++){
+        if(((obstLeftX[i] <= lookX && obstLeftX[i]+3 >= lookX) || (obstLeftX[i] <= lookX+2 && obstLeftX[i]+3 >= lookX+2 )) && (obstLeftZ[i] <= lookZ && obstLeftZ[i]+0.7 >= lookZ)){
+            lookX = lookX+0.3;
+            lookZ = lookZ+2.5;
+            collision = true;
+        }
+        else if(((obstLeftX[i] <= lookX && obstLeftX[i]+3 >= lookX)||(obstLeftX[i] <= lookX+2 && obstLeftX[i]+3 >= lookX+2 )) && (obstLeftZ[i] <= lookZ+5 && obstLeftZ[i]+0.7 >= lookZ+5)){
+            lookX = lookX+0.3;
+            lookZ = lookZ-1;
+            collision = true;
+        }
+    }
+
+    for(int i=1;i<=10;i++){
+        if(((obstRightX[i] <= lookX && obstRightX[i]+3 >= lookX)||(obstRightX[i] <= lookX+2 && obstRightX[i]+3 >= lookX+2 )) && (obstRightZ[i] <= lookZ && obstRightZ[i]+0.7 >= lookZ)){
+            lookX = lookX-0.3;
+            lookZ = lookZ+2.5;
+            collision = true;
+        }
+        else if(((obstRightX[i] <= lookX && obstRightX[i]+3 >= lookX)||(obstRightX[i] <= lookX+2 && obstRightX[i]+3 >= lookX+2 )) && (obstRightZ[i] <= lookZ+5 && obstRightZ[i]+0.7 >= lookZ+5)){
+            lookX = lookX-0.3;
+            lookZ = lookZ-1;
+            collision = true;
+        }
+    }
+
+    if(collision){
+        point-=10;
+        running = false;
     }
 
     glutPostRedisplay();
@@ -705,14 +903,15 @@ int main(int argc, char *argv[])
     LoadTexture("C:\\running-project\\graphics\\Car Ride\\images\\gateDoor.bmp",10);
     LoadTexture("C:\\running-project\\graphics\\Car Ride\\images\\car.bmp",11);
     LoadTexture("C:\\running-project\\graphics\\Car Ride\\images\\houseWall1.bmp",12);
+    LoadTexture("C:\\running-project\\graphics\\Car Ride\\images\\sand.bmp",13);
+    LoadTexture("C:\\running-project\\graphics\\Car Ride\\images\\rock1.bmp",14);
+    LoadTexture("C:\\running-project\\graphics\\Car Ride\\images\\rock2.bmp",15);
 
     glutReshapeFunc(on_resize);
     glutDisplayFunc(display);
     glutKeyboardFunc(keyPressed);
     glutKeyboardUpFunc(keyUp);
     glutIdleFunc(idle);
-
-
 
 
     glShadeModel( GL_SMOOTH );
