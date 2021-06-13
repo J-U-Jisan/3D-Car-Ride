@@ -9,15 +9,15 @@ using namespace std;
 #include "wheel.h"
 static bool collision = false, hLight = false, light1 = false, light3 = false;
 static int point = 0;
-static float lookX = 0;
-static float lookZ = 10;
+static float runX = 0;
+static float runZ = 10;
 static float eyeX = 1, eyeY = 1, eyeZ = 8, rot =0;
-static float carX[8] = {-6.8, -6.7, -4.2, -4.5, 4.2, 2.5, 3, 4.2}, carZ[8] = {-2, -10, -18, -30, -2, -40 , -18, -10};
-static float carSpeed[8] = {0.2, 0.3, 0.35, 0.15, 0.25, 0.2, 0.25, 0.3};
-static float obstLeftX[12], obstRightX[12], obstLeftZ[12], obstRightZ[12];
+float carX[8] = {-6.8, -6.7, -4.2, -4.5, 4.2, 2.5, 3, 4.2}, carZ[8] = {-2, -10, -18, -30, -2, -40 , -18, -10};
+float carSpeed[8] = {0.2, 0.3, 0.35, 0.15, 0.25, 0.2, 0.25, 0.3};
+float obstLeftX[12], obstRightX[12], obstLeftZ[12], obstRightZ[12];
 unsigned int ID;
-
-static GLfloat v_cube[8][3] =
+static float rotation = 0.0 , Tyval = 0, Tzval = 0;
+GLfloat v_cube[8][3] =
 {
     {0,0,0},
     {0,0,1},
@@ -29,7 +29,7 @@ static GLfloat v_cube[8][3] =
     {1,1,1}
 };
 
-static GLubyte c_ind[6][4] =
+GLubyte c_ind[6][4] =
 {
     {3,1,5,7},
     {2,0,1,3},
@@ -221,52 +221,6 @@ void axis(void)
 }
 
 
-void Floor(void)
-{
-    ///left side
-    for(int i=0; i<150; i++)
-    {
-        glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 5);
-
-        glPushMatrix();
-        for(int j=0;j<13;j++){
-            glPushMatrix();
-            glTranslatef(-10*j + 2, -3, i*-10);
-            glScalef(10,1,10);
-            drawCube(.35,.75,.5);
-            glPopMatrix();
-        }
-        glPopMatrix();
-        glDisable(GL_TEXTURE_2D);
-    }
-    ///right side
-    for(int i=0; i<150; i++){
-
-        glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 13);
-        glPushMatrix();
-        glTranslatef(12, -3, i*-10);
-        glScalef(10,1,10);
-        drawCube(1,1,1);
-        glPopMatrix();
-        glDisable(GL_TEXTURE_2D);
-
-        glPushMatrix();
-        glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 4);
-        for(int j=0;j<12;j++){
-            glPushMatrix();
-            glTranslatef(10*j +17, -4, i*-10);
-            glScalef(10,1,10);
-            drawCube(1,1,1);
-            glPopMatrix();
-        }
-        glPopMatrix();
-        glDisable(GL_TEXTURE_2D);
-    }
-}
-
 void footPath()
 {
     for(int i=1; i<=300;i++){
@@ -302,52 +256,7 @@ void road()
         glPopMatrix();
     }
 }
-void pool(){
-    float length = 20,width = 12;
 
-    glPushMatrix();
-    ///water
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, 4);
-    glBindTexture(GL_TEXTURE_2D, 4);
-    glBindTexture(GL_TEXTURE_2D, 4);
-
-    glPushMatrix();
-    glScalef(width, 0.0, length);
-    drawCube(1, 1, 1);
-    glPopMatrix();
-    glDisable(GL_TEXTURE_2D);
-
-//    ///Left edge
-//    glPushMatrix();
-//    glTranslatef(-1.5, 0, 0);
-//    glScalef(1.5, 0.1, length);
-//    drawCube(0.001, 0.001, 1);
-//    glPopMatrix();
-//
-//    ///Right edge
-//    glPushMatrix();
-//    glTranslatef(width, 0.0, 0);
-//    glScalef(1.5, 0.1, length);
-//    drawCube(0.001, 0.001, 1);
-//    glPopMatrix();
-//
-//    ///Front edge
-//    glPushMatrix();
-//    glTranslatef(-1.5, 0, length);
-//    glScalef(width + 3, 0.1, 1.5);
-//    drawCube(0.001, 0.001, 1);
-//    glPopMatrix();
-//
-//    ///Back edge
-//    glPushMatrix();
-//    glTranslatef(-1.5, 0, -1.5);
-//    glScalef(width + 3, 0.1, 1.5);
-//    drawCube(0.001, 0.001, 1);
-//    glPopMatrix();
-
-    glPopMatrix();
-}
 void building(void)
 {
     int height1 = 18,height2,height3,height4;
@@ -665,14 +574,14 @@ void car(void)
 
     ///Signal Light Left
     glPushMatrix();
-    glTranslatef(0, -0.4, 0 + 3.1);
+    glTranslatef(0, -0.4, 0 + 3);
     glScalef(.3, .15, .01);
     drawCube(1, 0, 0, hLight?true:false);
     glPopMatrix();
 
     ///Signal Light Right
     glPushMatrix();
-    glTranslatef(0 + 2 - 0.3 , -0.4, 0 + 3.1);
+    glTranslatef(0 + 2 - 0.3 , -0.4, 0 + 3);
     glScalef(.3, .15, .01);
     drawCube(1, 0, 0, hLight?true:false);
     glPopMatrix();
@@ -680,11 +589,11 @@ void car(void)
     glPopMatrix();
 }
 
-void leave(float angle)
+void leave(float angle, float length)
 {
     glPushMatrix();
     glRotatef(angle, 0, 1, 0);
-    glScalef(0.5, 0.02, 0.02);
+    glScalef(0.5 * length/100.0, 0.02, 0.02);
     drawCube(0.133, 0.545, 0.133);
     glPopMatrix();
 }
@@ -693,8 +602,8 @@ void branch()
     for(int i=1;i<=20;i++){
         glPushMatrix();
         glTranslatef(i*0.08 + 0.1, .04, 0);
-        leave(60);
-        leave(-60);
+        leave(60,  103.0-i*3);
+        leave(-60, 103.0-i*3);
         glPopMatrix();
     }
 
@@ -705,69 +614,33 @@ void branch()
 }
 void coconutTree()
 {
-    glPushMatrix();
-    glTranslatef(0, 3-0.2, 0);
-    glRotatef(-15, 0, 0, 1);
-    branch();
-    glPopMatrix();
+    for(int i=0;i<9;i++){
+        glPushMatrix();
+        glRotatef(i*45, 0, 1, 0);
+        glTranslatef(0, 6-0.2, 0);
+        glRotatef(-15, 0, 0, 1);
+        branch();
+        glPopMatrix();
+    }
 
-    glPushMatrix();
-    glRotatef(45, 0, 1, 0);
-    glTranslatef(0, 3-0.2, 0);
-    glRotatef(-15, 0, 0, 1);
-    branch();
-    glPopMatrix();
+    for(int i=0;i<6;i++){
+        glPushMatrix();
+        glRotatef(i*60, 0, 1, 0);
+        glTranslatef(0, 6-0.2, 0);
+        glRotatef(15, 0, 0, 1);
+        branch();
+        glPopMatrix();
+    }
 
-    glPushMatrix();
-    glRotatef(90, 0, 1, 0);
-    glTranslatef(0, 3-0.2, 0);
-    glRotatef(-15, 0, 0, 1);
-    branch();
-    glPopMatrix();
+    for(int i=0;i<3;i++){
+        glPushMatrix();
+        glRotatef(i*120, 0, 1, 0);
+        glTranslatef(0, 6-0.2, 0);
+        glRotatef(45, 0, 0, 1);
+        branch();
+        glPopMatrix();
+    }
 
-    glPushMatrix();
-    glRotatef(135, 0, 1, 0);
-    glTranslatef(0, 3-0.2, 0);
-    glRotatef(-15, 0, 0, 1);
-    branch();
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(180, 0, 1, 0);
-    glTranslatef(0, 3-0.2, 0);
-    glRotatef(-15, 0, 0, 1);
-    branch();
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(225, 0, 1, 0);
-    glTranslatef(0, 3-0.2, 0);
-    glRotatef(-15, 0, 0, 1);
-    branch();
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(270, 0, 1, 0);
-    glTranslatef(0, 3-0.2, 0);
-    glRotatef(-15, 0, 0, 1);
-    branch();
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(315, 0, 1, 0);
-    glTranslatef(0, 3-0.2, 0);
-    glRotatef(-15, 0, 0, 1);
-    branch();
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(360, 0, 1, 0);
-    glTranslatef(0, 3-0.2, 0);
-    glRotatef(-15, 0, 0, 1);
-    branch();
-    glPopMatrix();
-
-    //glEnable(GL_COLOR_MATERIAL);
     GLUquadricObj *tree;
     tree = gluNewQuadric();
     gluQuadricTexture(tree, GLU_TRUE);
@@ -778,12 +651,62 @@ void coconutTree()
     glTranslatef(0,0,0);
     glRotatef(-90,1,0,0);
     material_property(0.827, 0.827, 0.827,0);
-    gluCylinder(tree, 0.2f, 0.15f, 3, 32, 32);
+    gluCylinder(tree, 0.2f, 0.15f, 6, 32, 32);
     glPopMatrix();
     glDisable(GL_TEXTURE_2D);
     //glDisable(GL_COLOR_MATERIAL);
 
 }
+
+void Floor(void)
+{
+    ///left side
+    for(int i=0; i<150; i++)
+    {
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 5);
+
+        glPushMatrix();
+        for(int j=0;j<13;j++){
+            glPushMatrix();
+            glTranslatef(-10*j + 2, -3, i*-10);
+            glScalef(10,1,10);
+            drawCube(.35,.75,.5);
+            glPopMatrix();
+        }
+        glPopMatrix();
+        glDisable(GL_TEXTURE_2D);
+    }
+    ///right side
+    for(int i=0; i<150; i++){
+
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 13);
+        glPushMatrix();
+        glTranslatef(12, -3, i*-10);
+        glScalef(10,1,10);
+        drawCube(1,1,1);
+        glPopMatrix();
+        glDisable(GL_TEXTURE_2D);
+
+        glPushMatrix();
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 4);
+        for(int j=0;j<12;j++){
+            glPushMatrix();
+            glTranslatef(10*j +17, -4, i*-10);
+            glScalef(10,1,10);
+            drawCube(1,1,1);
+            glPopMatrix();
+        }
+        glPopMatrix();
+        glDisable(GL_TEXTURE_2D);
+    }
+
+
+
+}
+
 static void display(void)
 {
 
@@ -791,8 +714,9 @@ static void display(void)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
-    gluLookAt(lookX + eyeX, eyeY, eyeZ + lookZ, lookX, 0, lookZ-5, 0, 1, 0);
-
+    gluLookAt(runX + eyeX, eyeY, eyeZ + runZ, runX, 0, runZ-5, 0, 1, 0);
+    glRotatef(rotation, 0, 1, 0);
+    glTranslatef(0, Tyval, Tzval);
     //axis();
 
     ///Start text Section
@@ -803,7 +727,7 @@ static void display(void)
 
     if(collision){
         glPushMatrix();
-        glTranslatef(lookX , 3 , lookZ);
+        glTranslatef(runX , 3 , runZ);
         glRotatef(-2,0,0,1);
         drawText(s1,1, 0, 0, 2);
         glPopMatrix();
@@ -816,22 +740,29 @@ static void display(void)
     ss<<point;
     s1 ="Point:" + ss.str();
 
-    coconutTree();
     glPushMatrix();
-    glTranslatef(lookX + 2.5, 3.7, lookZ);
+    glTranslatef(runX + 2.5, 3.7, runZ);
     glRotatef(-2, 0, 0, 1);
     drawText(s1, 0, 0, 1, 3);
     glPopMatrix();
     ///End text section
 
+    ///Coconut tree
+    for(int i = 0; i<15;i++){
+        glPushMatrix();
+        glTranslatef(12.5, -2.5, -i*90 - 20);
+        coconutTree();
+        glPopMatrix();
+    }
+
     glPushMatrix();
-    glTranslatef(lookX-2.3 , 10 , lookZ-5);
-    glScalef(1,1,200);
-    light(0,3,0);
+    glTranslatef(runX-2.3 , 10 , runZ-4);
+    glScalef(5,1,200);
+    light(0,5,0);
     glPopMatrix();
 
     glPushMatrix();
-    shop_light(lookX,3,lookZ -20);
+    shop_light(runX,3,runZ -20);
     glPopMatrix();
 
     shop();
@@ -858,7 +789,7 @@ static void display(void)
     }
 
     glPushMatrix();
-    glTranslatef(lookX, 0, lookZ);
+    glTranslatef(runX, 0, runZ);
     car();
     glPopMatrix();
 
@@ -876,20 +807,20 @@ static void keyPressed(unsigned char key, int x, int y)
     if(key == 'e'){
         running = true;
         start = true;
-        lookZ = lookZ - 1;
+        runZ = runZ - 1;
     }
     else if(key == 's'){
         start = true;
         running = false;
-        lookZ = lookZ + 0.3;
+        runZ = runZ + 0.3;
     }
     else if(key == 'a'){
-        if ( lookX > -6.2)
-                lookX = lookX - 0.15;
+        if ( runX > -6.2)
+                runX = runX - 0.15;
     }
     else if(key == 'f'){
-        if ( lookX < 4.5)
-                lookX = lookX + 0.15;
+        if ( runX < 4.5)
+                runX = runX + 0.15;
     }
     else if(key == '1'){
         light1 = !light1;
@@ -900,24 +831,18 @@ static void keyPressed(unsigned char key, int x, int y)
     else if(key == '3'){
         light3 = !light3;
     }
-    else if(key == 'z'){
-            eyeZ-=0.5;
-    }
-    else if(key == 'Z'){
-        eyeZ+=0.5;
-    }
-    else if(key == 'x'){
-        eyeX-=0.5;
-    }
-    else if(key == 'X'){
-        eyeX+=0.5;
-    }
-    else if(key == 'y'){
-        eyeY-=0.5;
-    }
-    else if(key == 'Y'){
-        eyeY+=0.5;
-    }
+    else if(key == '+')
+        Tzval+=0.2;
+    else if(key == '-')
+        Tzval-=0.2;
+    else if(key == 'l')
+        rotation++;
+    else if(key == 'r')
+        rotation--;
+    else if(key == 't')
+        Tyval-=0.2;
+    else if(key == 'b')
+        Tyval+=0.2;
     else if(key == 'q'){
         exit(0);
     }
@@ -933,13 +858,14 @@ static void keyPressed(unsigned char key, int x, int y)
 
 static void idle(void)
 {
-    if(lookZ<-1300)
-        lookZ = -80;
-    else if(lookZ>3){
-        lookZ=3;
+
+    if(runZ<-1300)
+        runZ = -80;
+    else if(runZ>3){
+        runZ=3;
     }
     if(rot>=360) rot = 0;
-    if(running)lookZ-=0.7 , point++, rot += 0.2;
+    if(running)runZ-=0.7 , point++, rot += 0.2;
     if(start){
         for(int i=0;i<8;i++){
             if(carZ[i]<-1300)
@@ -951,49 +877,49 @@ static void idle(void)
     }
     ///Collision detection
      for(int i=0;i<8;i++){
-        if((carX[i]<=lookX+2 && carX[i]+2 >= lookX+2)&&(carZ[i]<=lookZ && carZ[i]+5>=lookZ)){
-            lookX = lookX-0.3;
-            lookZ = lookZ+1;
+        if((carX[i]<=runX+2 && carX[i]+2 >= runX+2)&&(carZ[i]<=runZ && carZ[i]+5>=runZ)){
+            runX = runX-0.3;
+            runZ = runZ+1;
             collision = true;
         }
-        else if((carX[i]<=lookX && carX[i]+2>=lookX) &&(carZ[i]<=lookZ && carZ[i]+5>=lookZ)){
-            lookX = lookX+0.3;
-            lookZ = lookZ+1;
+        else if((carX[i]<=runX && carX[i]+2>=runX) &&(carZ[i]<=runZ && carZ[i]+5>=runZ)){
+            runX = runX+0.3;
+            runZ = runZ+1;
             collision = true;
         }
-        else if((carX[i]<=lookX && carX[i]+2>=lookX) &&(carZ[i]<=lookZ+5 && carZ[i]+5>=lookZ+5)){
-            lookX = lookX+0.3;
-            lookZ = lookZ - 1;
+        else if((carX[i]<=runX && carX[i]+2>=runX) &&(carZ[i]<=runZ+5 && carZ[i]+5>=runZ+5)){
+            runX = runX+0.3;
+            runZ = runZ - 1;
             collision = true;
         }
-        else if((carX[i]>=lookX+2 && carX[i]+2<=lookX+2) &&(carZ[i]<=lookZ+5 && carZ[i]+5>=lookZ+5)){
-            lookX = lookX-3;
-            lookZ = lookZ - 1;
+        else if((carX[i]>=runX+2 && carX[i]+2<=runX+2) &&(carZ[i]<=runZ+5 && carZ[i]+5>=runZ+5)){
+            runX = runX-3;
+            runZ = runZ - 1;
             collision = true;
         }
     }
     for(int i=1; i<=10; i++){
-        if(((obstLeftX[i] <= lookX && obstLeftX[i]+3 >= lookX) || (obstLeftX[i] <= lookX+2 && obstLeftX[i]+3 >= lookX+2 )) && (obstLeftZ[i] <= lookZ && obstLeftZ[i]+0.7 >= lookZ)){
-            lookX = lookX+0.3;
-            lookZ = lookZ+2.5;
+        if(((obstLeftX[i] <= runX && obstLeftX[i]+3 >= runX) || (obstLeftX[i] <= runX+2 && obstLeftX[i]+3 >= runX+2 )) && (obstLeftZ[i] <= runZ && obstLeftZ[i]+0.7 >= runZ)){
+            runX = runX+0.3;
+            runZ = runZ+2.5;
             collision = true;
         }
-        else if(((obstLeftX[i] <= lookX && obstLeftX[i]+3 >= lookX)||(obstLeftX[i] <= lookX+2 && obstLeftX[i]+3 >= lookX+2 )) && (obstLeftZ[i] <= lookZ+5 && obstLeftZ[i]+0.7 >= lookZ+5)){
-            lookX = lookX+0.3;
-            lookZ = lookZ-1;
+        else if(((obstLeftX[i] <= runX && obstLeftX[i]+3 >= runX)||(obstLeftX[i] <= runX+2 && obstLeftX[i]+3 >= runX+2 )) && (obstLeftZ[i] <= runZ+5 && obstLeftZ[i]+0.7 >= runZ+5)){
+            runX = runX+0.3;
+            runZ = runZ-1;
             collision = true;
         }
     }
 
     for(int i=1;i<=10;i++){
-        if(((obstRightX[i] <= lookX && obstRightX[i]+3 >= lookX)||(obstRightX[i] <= lookX+2 && obstRightX[i]+3 >= lookX+2 )) && (obstRightZ[i] <= lookZ && obstRightZ[i]+0.7 >= lookZ)){
-            lookX = lookX-0.3;
-            lookZ = lookZ+2.5;
+        if(((obstRightX[i] <= runX && obstRightX[i]+3 >= runX)||(obstRightX[i] <= runX+2 && obstRightX[i]+3 >= runX+2 )) && (obstRightZ[i] <= runZ && obstRightZ[i]+0.7 >= runZ)){
+            runX = runX-0.3;
+            runZ = runZ+2.5;
             collision = true;
         }
-        else if(((obstRightX[i] <= lookX && obstRightX[i]+3 >= lookX)||(obstRightX[i] <= lookX+2 && obstRightX[i]+3 >= lookX+2 )) && (obstRightZ[i] <= lookZ+5 && obstRightZ[i]+0.7 >= lookZ+5)){
-            lookX = lookX-0.3;
-            lookZ = lookZ-1;
+        else if(((obstRightX[i] <= runX && obstRightX[i]+3 >= runX)||(obstRightX[i] <= runX+2 && obstRightX[i]+3 >= runX+2 )) && (obstRightZ[i] <= runZ+5 && obstRightZ[i]+0.7 >= runZ+5)){
+            runX = runX-0.3;
+            runZ = runZ-1;
             collision = true;
         }
     }
@@ -1060,6 +986,9 @@ int main(int argc, char *argv[])
     printf("Press  '1' for Turn On & Turn off Light1\n");
     printf("Press  '2' for Turn On & Turn off Car Light\n");
     printf("Press  '3' for Turn On & Turn off Left Side Light\n");
+    printf("Press  'r' for Right rotation");
+    printf("Press  'l' for Left rotation");
+    printf("Press  '+' for Zoom in");
     printf("Press  'q' to close the game\n");
 
     glutMainLoop();

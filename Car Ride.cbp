@@ -45,6 +45,7 @@
 		<Unit filename="BmpLoader.cpp" />
 		<Unit filename="BmpLoader.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="wheel.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />
