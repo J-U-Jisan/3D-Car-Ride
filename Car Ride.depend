@@ -1,11 +1,12 @@
 # depslib dependency file v1.0
-1623564273 source:c:\running-project\graphics\car ride\main.cpp
+1623606515 source:c:\running-project\graphics\car ride\main.cpp
 	<bits/stdc++.h>
 	<windows.h>
 	"BmpLoader.h"
 	<GL/glut.h>
 	<GL/gl.h>
 	<string>
+	"wheel.h"
 
 1301111164 c:\program files (x86)\codeblocks\mingw\include\gl\gl.h
 
@@ -242,4 +243,6 @@
 
 1622092104 c:\running-project\graphics\car ride\bmploader.h
 	<windows.h>
+
+1623603802 c:\running-project\graphics\car ride\wheel.h
 

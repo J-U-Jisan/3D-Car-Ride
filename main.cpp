@@ -4,14 +4,14 @@
 #include <GL/glut.h>
 #include <GL/gl.h>
 #include<string>
-using namespace std;
 
-const double PI = 3.14159265389;
-static bool collision = false, hLight = false, light1 = false;
+using namespace std;
+#include "wheel.h"
+static bool collision = false, hLight = false, light1 = false, light3 = false;
 static int point = 0;
 static float lookX = 0;
 static float lookZ = 10;
-static float eyeX = 1, eyeY = 1, eyeZ = 8;
+static float eyeX = 1, eyeY = 1, eyeZ = 8, rot =0;
 static float carX[8] = {-6.8, -6.7, -4.2, -4.5, 4.2, 2.5, 3, 4.2}, carZ[8] = {-2, -10, -18, -30, -2, -40 , -18, -10};
 static float carSpeed[8] = {0.2, 0.3, 0.35, 0.15, 0.25, 0.2, 0.25, 0.3};
 static float obstLeftX[12], obstRightX[12], obstLeftZ[12], obstRightZ[12];
@@ -165,8 +165,8 @@ void light(float x, float y, float z)
 void head_light(float x, float y, float z)
 {
     GLfloat no_light[] = { 0.0, 0.0, 0.0, 1.0 };
-    GLfloat light_ambient[]  = {1, 0, 0, 1.0};
-    GLfloat light_diffuse[]  = { 1, 0, 0, 1.0 };
+    GLfloat light_ambient[]  = {1, 1, 0, 1.0};
+    GLfloat light_diffuse[]  = { 1, 1, 0, 1.0 };
     GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
     GLfloat light_pos[] = { x,y,z,1};
 
@@ -191,9 +191,9 @@ void shop_light(float x, float y, float z)
     GLfloat light_pos[] = { x,y,z,1};
 
     glEnable(GL_LIGHT2);
-    glLightfv(GL_LIGHT2, GL_AMBIENT, hLight?light_ambient:no_light);
-    glLightfv(GL_LIGHT2,GL_DIFFUSE, hLight?light_diffuse:no_light);
-    glLightfv(GL_LIGHT2,GL_SPECULAR, hLight?light_specular:no_light);
+    glLightfv(GL_LIGHT2, GL_AMBIENT, light3?light_ambient:no_light);
+    glLightfv(GL_LIGHT2,GL_DIFFUSE, light3?light_diffuse:no_light);
+    glLightfv(GL_LIGHT2,GL_SPECULAR, light3?light_specular:no_light);
     glLightfv(GL_LIGHT2, GL_POSITION, light_pos);
 
     GLfloat direction[] = {-1, -1, 0, 1};
@@ -219,6 +219,7 @@ void axis(void)
     glEnd();
 
 }
+
 
 void Floor(void)
 {
@@ -571,6 +572,41 @@ void obstacle()
 }
 void car(void)
 {
+
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 16);
+
+    ///Front Left Wheel
+    glPushMatrix();
+    glTranslatef(-0.6, -0.8, -1);
+    glScalef(0.1,0.15,0.15);
+    wheel();
+    glPopMatrix();
+
+    ///Front Right Wheel
+    glPushMatrix();
+    glTranslatef(1.4, -0.8, -1);
+    glScalef(0.1,0.15,0.15);
+    wheel();
+    glPopMatrix();
+
+    ///Back Left Wheel
+    glPushMatrix();
+    glTranslatef(-0.6, -0.8, 2);
+    glScalef(0.1,0.15,0.15);
+    wheel();
+    glPopMatrix();
+
+    ///Back Right Wheel
+    glPushMatrix();
+    glTranslatef(1.4, -0.8, 2);
+    glRotatef(rot, 1, 0, 0);
+    glScalef(0.1,0.15,0.15);
+    wheel();
+    glPopMatrix();
+    glDisable(GL_TEXTURE_2D);
+
+
     head_light(0,2,-3);
     glPushMatrix();
 
@@ -644,6 +680,110 @@ void car(void)
     glPopMatrix();
 }
 
+void leave(float angle)
+{
+    glPushMatrix();
+    glRotatef(angle, 0, 1, 0);
+    glScalef(0.5, 0.02, 0.02);
+    drawCube(0.133, 0.545, 0.133);
+    glPopMatrix();
+}
+void branch()
+{
+    for(int i=1;i<=20;i++){
+        glPushMatrix();
+        glTranslatef(i*0.08 + 0.1, .04, 0);
+        leave(60);
+        leave(-60);
+        glPopMatrix();
+    }
+
+    glPushMatrix();
+    glScalef(1.8,0.08,0.08);
+    drawCube(0.180, 0.545, 0.341);
+    glPopMatrix();
+}
+void coconutTree()
+{
+    glPushMatrix();
+    glTranslatef(0, 3-0.2, 0);
+    glRotatef(-15, 0, 0, 1);
+    branch();
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(45, 0, 1, 0);
+    glTranslatef(0, 3-0.2, 0);
+    glRotatef(-15, 0, 0, 1);
+    branch();
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(90, 0, 1, 0);
+    glTranslatef(0, 3-0.2, 0);
+    glRotatef(-15, 0, 0, 1);
+    branch();
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(135, 0, 1, 0);
+    glTranslatef(0, 3-0.2, 0);
+    glRotatef(-15, 0, 0, 1);
+    branch();
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(180, 0, 1, 0);
+    glTranslatef(0, 3-0.2, 0);
+    glRotatef(-15, 0, 0, 1);
+    branch();
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(225, 0, 1, 0);
+    glTranslatef(0, 3-0.2, 0);
+    glRotatef(-15, 0, 0, 1);
+    branch();
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(270, 0, 1, 0);
+    glTranslatef(0, 3-0.2, 0);
+    glRotatef(-15, 0, 0, 1);
+    branch();
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(315, 0, 1, 0);
+    glTranslatef(0, 3-0.2, 0);
+    glRotatef(-15, 0, 0, 1);
+    branch();
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(360, 0, 1, 0);
+    glTranslatef(0, 3-0.2, 0);
+    glRotatef(-15, 0, 0, 1);
+    branch();
+    glPopMatrix();
+
+    //glEnable(GL_COLOR_MATERIAL);
+    GLUquadricObj *tree;
+    tree = gluNewQuadric();
+    gluQuadricTexture(tree, GLU_TRUE);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D,2);
+
+    glPushMatrix();
+    glTranslatef(0,0,0);
+    glRotatef(-90,1,0,0);
+    material_property(0.827, 0.827, 0.827,0);
+    gluCylinder(tree, 0.2f, 0.15f, 3, 32, 32);
+    glPopMatrix();
+    glDisable(GL_TEXTURE_2D);
+    //glDisable(GL_COLOR_MATERIAL);
+
+}
 static void display(void)
 {
 
@@ -676,6 +816,7 @@ static void display(void)
     ss<<point;
     s1 ="Point:" + ss.str();
 
+    coconutTree();
     glPushMatrix();
     glTranslatef(lookX + 2.5, 3.7, lookZ);
     glRotatef(-2, 0, 0, 1);
@@ -711,7 +852,7 @@ static void display(void)
 
     for(int i=0;i<8;i++){
         glPushMatrix();
-        glTranslatef(carX[i], -0.5, carZ[i]);
+        glTranslatef(carX[i], 0, carZ[i]);
         car();
         glPopMatrix();
     }
@@ -721,90 +862,74 @@ static void display(void)
     car();
     glPopMatrix();
 
+    glFlush();
     glutSwapBuffers();
 
 }
 
-bool* keyStates = new bool[256];
+//bool* keyStates = new bool[256];
 static bool running = false, start = false;
 static void keyPressed(unsigned char key, int x, int y)
 {
-    keyStates[key] = true;
+   // keyStates[key] = true;
 
-    if(keyStates['e']){
+    if(key == 'e'){
         running = true;
         start = true;
         lookZ = lookZ - 1;
-        if(keyStates['f']){
-            if ( lookX < 4.5)
-                lookX = lookX + 0.15;
-        }
-        else if(keyStates['a']){
-            if ( lookX > -6.5)
-                lookX = lookX - 0.15;
-        }
     }
-    else if(keyStates['s']){
+    else if(key == 's'){
         start = true;
         running = false;
         lookZ = lookZ + 0.3;
-
-        if(keyStates['f']){
-            if ( lookX < 4.5)
-                lookX = lookX + 0.15;
-        }
-        else if(keyStates['a']){
-            if ( lookX > -6.5)
-                lookX = lookX - 0.15;
-        }
     }
-    else if(keyStates['a']){
+    else if(key == 'a'){
         if ( lookX > -6.2)
                 lookX = lookX - 0.15;
     }
-    else if(keyStates['f']){
+    else if(key == 'f'){
         if ( lookX < 4.5)
                 lookX = lookX + 0.15;
     }
-    else if(keyStates['1']){
+    else if(key == '1'){
         light1 = !light1;
     }
-    else if(keyStates['2']){
+    else if(key == '2'){
         hLight = !hLight;
     }
-    else if(keyStates['<']){
-
+    else if(key == '3'){
+        light3 = !light3;
     }
-    else if(keyStates['z']){
+    else if(key == 'z'){
             eyeZ-=0.5;
     }
-    else if(keyStates['Z']){
+    else if(key == 'Z'){
         eyeZ+=0.5;
     }
-    else if(keyStates['x']){
+    else if(key == 'x'){
         eyeX-=0.5;
     }
-    else if(keyStates['X']){
+    else if(key == 'X'){
         eyeX+=0.5;
     }
-    else if(keyStates['y']){
+    else if(key == 'y'){
         eyeY-=0.5;
     }
-    else if(keyStates['Y']){
+    else if(key == 'Y'){
         eyeY+=0.5;
     }
-    else if(keyStates['q']){
+    else if(key == 'q'){
         exit(0);
     }
 
     glutPostRedisplay();
 }
 
-static void keyUp(unsigned char key, int x, int y){
-    keyStates[key] = false;
-
-    glutPostRedisplay();
-}
+//static void keyUp(unsigned char key, int x, int y){
+//    keyStates[key] = false;
+//
+//    glutPostRedisplay();
+//}
 
 static void idle(void)
 {
@@ -813,7 +938,8 @@ static void idle(void)
     else if(lookZ>3){
         lookZ=3;
     }
-    if(running)lookZ-=0.7 , point++;
+    if(rot>=360) rot = 0;
+    if(running)lookZ-=0.7 , point++, rot += 0.2;
     if(start){
         for(int i=0;i<8;i++){
             if(carZ[i]<-1300)
@@ -906,11 +1032,11 @@ int main(int argc, char *argv[])
     LoadTexture("C:\\running-project\\graphics\\Car Ride\\images\\sand.bmp",13);
     LoadTexture("C:\\running-project\\graphics\\Car Ride\\images\\rock1.bmp",14);
     LoadTexture("C:\\running-project\\graphics\\Car Ride\\images\\rock2.bmp",15);
+    LoadTexture("C:\\running-project\\graphics\\Car Ride\\images\\wheel.bmp",16);
 
     glutReshapeFunc(on_resize);
     glutDisplayFunc(display);
     glutKeyboardFunc(keyPressed);
-    glutKeyboardUpFunc(keyUp);
     glutIdleFunc(idle);
 
 
@@ -927,11 +1053,14 @@ int main(int argc, char *argv[])
     printf("##############                                                         #################\n");
     printf("########################################################################################\n");
     printf("########################################################################################\n\n\n");
-    printf("Press  'E' for Forward\n");
-    printf("Press  'S' for Backward\n");
-    printf("Press  'A' for Left\n");
-    printf("Press  'F' for Right\n");
-    printf("Press  'Q' to close the game\n");
+    printf("Press  'e' for Forward\n");
+    printf("Press  's' for Backward\n");
+    printf("Press  'a' for Left\n");
+    printf("Press  'f' for Right\n");
+    printf("Press  '1' for Turn On & Turn off Light1\n");
+    printf("Press  '2' for Turn On & Turn off Car Light\n");
+    printf("Press  '3' for Turn On & Turn off Left Side Light\n");
+    printf("Press  'q' to close the game\n");
 
     glutMainLoop();
 
