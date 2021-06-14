@@ -7,8 +7,9 @@
 
 using namespace std;
 #include "wheel.h"
-static bool collision = false, hLight = false, light1 = false, light3 = false;
+static bool collision = false, hLight = false, light1 = false, light3 = false,  start = false, running = false;
 static int point = 0;
+static int hPoint = 0;
 static float runX = 0;
 static float runZ = 10;
 static float eyeX = 1, eyeY = 1, eyeZ = 8, rot =0;
@@ -162,7 +163,7 @@ void light(float x, float y, float z)
 
 }
 
-void head_light(float x, float y, float z)
+void head_light(float x, float y, float z, bool key)
 {
     GLfloat no_light[] = { 0.0, 0.0, 0.0, 1.0 };
     GLfloat light_ambient[]  = {1, 1, 0, 1.0};
@@ -171,9 +172,9 @@ void head_light(float x, float y, float z)
     GLfloat light_pos[] = { x,y,z,1};
 
     glEnable(GL_LIGHT1);
-    glLightfv(GL_LIGHT1, GL_AMBIENT, hLight?light_ambient:no_light);
-    glLightfv(GL_LIGHT1,GL_DIFFUSE, hLight?light_diffuse:no_light);
-    glLightfv(GL_LIGHT1,GL_SPECULAR, hLight?light_specular:no_light);
+    glLightfv(GL_LIGHT1, GL_AMBIENT, key?light_ambient:no_light);
+    glLightfv(GL_LIGHT1,GL_DIFFUSE, key?light_diffuse:no_light);
+    glLightfv(GL_LIGHT1,GL_SPECULAR, key?light_specular:no_light);
     glLightfv(GL_LIGHT1, GL_POSITION, light_pos);
 
     GLfloat direction[] = {0, -1, -1, 1};
@@ -479,7 +480,7 @@ void obstacle()
         glDisable(GL_TEXTURE_2D);
     }
 }
-void car(void)
+void car(bool sLight)
 {
 
     glEnable(GL_TEXTURE_2D);
@@ -515,8 +516,6 @@ void car(void)
     glPopMatrix();
     glDisable(GL_TEXTURE_2D);
 
-
-    head_light(0,2,-3);
     glPushMatrix();
 
     glEnable(GL_TEXTURE_2D);
@@ -526,14 +525,14 @@ void car(void)
     glPushMatrix();
     glTranslatef(0.2, -0.4, -2.02);
     glScalef(0.3, 0.25, 0.1);
-    drawCube(0.9, 0.5, 0.5, hLight?true:false);
+    drawCube(0.9, 0.5, 0.5, sLight?true:false);
     glPopMatrix();
 
     ///Front Right Light
     glPushMatrix();
     glTranslatef(2-0.5, -0.4, -2.02);
     glScalef(0.3, 0.25, 0.1);
-    drawCube(0.9, 0.5, 0.5, hLight?true:false);
+    drawCube(0.9, 0.5, 0.5, sLight?true:false);
     glPopMatrix();
 
     ///lowerPart
@@ -576,14 +575,14 @@ void car(void)
     glPushMatrix();
     glTranslatef(0, -0.4, 0 + 3);
     glScalef(.3, .15, .01);
-    drawCube(1, 0, 0, hLight?true:false);
+    drawCube(1, 0, 0, sLight?true:false);
     glPopMatrix();
 
     ///Signal Light Right
     glPushMatrix();
     glTranslatef(0 + 2 - 0.3 , -0.4, 0 + 3);
     glScalef(.3, .15, .01);
-    drawCube(1, 0, 0, hLight?true:false);
+    drawCube(1, 0, 0, sLight?true:false);
     glPopMatrix();
 
     glPopMatrix();
@@ -721,24 +720,36 @@ static void display(void)
 
     ///Start text Section
     stringstream ss;
-    ss<<"COLLISION";
+    ss<<"'Game End' Press 'e' for play again";
 
     string s1 = ss.str();
 
     if(collision){
+        runX = 0;
+        runZ = 10;
+        hPoint = max(hPoint, point);
+        gluLookAt(eyeX-1, eyeY-1, eyeZ-1.3, runX, 0, runZ-5, 0, 1, 0);
         glPushMatrix();
-        glTranslatef(runX , 3 , runZ);
-        glRotatef(-2,0,0,1);
+        glTranslatef(runX-4 , 3 , runZ);
+        glRotatef(0,0,0,1);
         drawText(s1,1, 0, 0, 2);
         glPopMatrix();
+        start = false;
 
-        collision = false;
+        ss.str(string());
+        ss<<hPoint;
+        s1 = "Highest Score: " + ss.str();
+        glPushMatrix();
+        glTranslatef(runX, 2.5, runZ);
+        glRotatef(-2, 0,0,1);
+        drawText(s1, 0,1,0, 3);
+        glPopMatrix();
     }
 
     ss.str(string());
 
     ss<<point;
-    s1 ="Point:" + ss.str();
+    s1 ="Score:" + ss.str();
 
     glPushMatrix();
     glTranslatef(runX + 2.5, 3.7, runZ);
@@ -748,7 +759,7 @@ static void display(void)
     ///End text section
 
     ///Coconut tree
-    for(int i = 0; i<15;i++){
+    for(int i = 0; i<10;i++){
         glPushMatrix();
         glTranslatef(12.5, -2.5, -i*90 - 20);
         coconutTree();
@@ -784,13 +795,14 @@ static void display(void)
     for(int i=0;i<8;i++){
         glPushMatrix();
         glTranslatef(carX[i], 0, carZ[i]);
-        car();
+        car(start && !light3);
         glPopMatrix();
     }
 
     glPushMatrix();
     glTranslatef(runX, 0, runZ);
-    car();
+    head_light(0,2,-3, hLight || (running && !light3));
+    car(hLight || (running && !light3));
     glPopMatrix();
 
     glFlush();
@@ -799,7 +811,7 @@ static void display(void)
 }
 
 //bool* keyStates = new bool[256];
-static bool running = false, start = false;
+int windowId = 0;
 static void keyPressed(unsigned char key, int x, int y)
 {
    // keyStates[key] = true;
@@ -821,6 +833,9 @@ static void keyPressed(unsigned char key, int x, int y)
     else if(key == 'f'){
         if ( runX < 4.5)
                 runX = runX + 0.15;
+    }
+    else if(key == 'c'){
+        collision = false;
     }
     else if(key == '1'){
         light1 = !light1;
@@ -925,9 +940,10 @@ static void idle(void)
     }
 
     if(collision){
-        point-=10;
+       // point-=10;
         running = false;
     }
+
 
     glutPostRedisplay();
 }
@@ -941,7 +957,7 @@ int main(int argc, char *argv[])
     glutInitWindowPosition (100, 100);
 
 
-    glutCreateWindow("Car Ride");
+    windowId = glutCreateWindow("Car Ride");
 
     LoadTexture("C:\\running-project\\graphics\\Car Ride\\images\\road.bmp",1);
     LoadTexture("C:\\running-project\\graphics\\Car Ride\\images\\tin.bmp",2);
@@ -986,9 +1002,12 @@ int main(int argc, char *argv[])
     printf("Press  '1' for Turn On & Turn off Light1\n");
     printf("Press  '2' for Turn On & Turn off Car Light\n");
     printf("Press  '3' for Turn On & Turn off Left Side Light\n");
-    printf("Press  'r' for Right rotation");
-    printf("Press  'l' for Left rotation");
-    printf("Press  '+' for Zoom in");
+    printf("Press  'r' for Right rotation\n");
+    printf("Press  'l' for Left rotation\n");
+    printf("Press  't' for Top\n");
+    printf("Press  'b' for Bottom\n");
+    printf("Press  '+' for Zoom in\n");
+    printf("Press  '-' for Zoom out\n");
     printf("Press  'q' to close the game\n");
 
     glutMainLoop();
